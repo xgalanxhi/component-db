@@ -47,6 +47,8 @@ jobs:
       - name: Register build artifact
         uses: cloudbees-io/register-build-artifact@v1
         with:
+          name: docker.io/mock/database
+          version: ${{ cloudbees.version }}
           artifact-location: docker.io/mock/database:${{ cloudbees.version }}
 
       - name: Publish build evidence
