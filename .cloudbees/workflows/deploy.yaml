@@ -1,0 +1,69 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      artifact-id:
+        type: string
+        required: true
+      version:
+        type: string
+        required: true
+
+jobs:
+  deploy:
+    steps:
+      - name: Mock Deploy Database Component
+        uses: docker://alpine:latest
+        shell: sh
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+          VERSION: ${{ inputs.version }}
+          ARTIFACT_ID: ${{ inputs.artifact-id }}
+        run: |
+          echo "=================================="
+          echo "Deploying Database Component"
+          echo "=================================="
+          echo ""
+          echo "Environment: $ENVIRONMENT"
+          echo "Version: $VERSION"
+          echo "Artifact ID: $ARTIFACT_ID"
+          echo ""
+          echo "Step 1: Validating deployment configuration..."
+          sleep 1
+          echo "Step 2: Pulling database image..."
+          sleep 1
+          echo "Step 3: Starting database service..."
+          sleep 1
+          echo "Step 4: Running health checks..."
+          sleep 1
+          echo ""
+          echo "✓ Database is running"
+          echo ""
+          echo "Deployment URL: https://db-$ENVIRONMENT.mock.cloudbees.io"
+          echo "Status: ONLINE"
+          echo "=================================="
+
+      - name: Register deployed artifact
+        uses: cloudbees-io/register-deployed-artifact@v2
+        with:
+          artifact-id: ${{ inputs.artifact-id }}
+          target-environment: ${{ inputs.environment }}
+
+      - name: Publish deployment evidence
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |
+            ## Database Component Deployment
+
+            **Environment**: `${{ inputs.environment }}`
+            **Version**: `${{ inputs.version }}`
+            **Artifact ID**: `${{ inputs.artifact-id }}`
+            **Image**: `docker.io/mock/database:${{ inputs.version }}`
+            **Deployment URL**: `https://db-${{ inputs.environment }}.mock.cloudbees.io`
+            **Status**: Deployment complete, database is online

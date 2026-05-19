@@ -1,0 +1,57 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: build
+
+on:
+  workflow_call:
+    outputs:
+      artifact-id:
+        value: ${{ jobs.build.outputs.artifact-id }}
+      version:
+        value: ${{ jobs.build.outputs.version }}
+      image:
+        value: ${{ jobs.build.outputs.image }}
+
+jobs:
+  build:
+    outputs:
+      artifact-id: db-artifact-${{ cloudbees.version }}
+      version: ${{ cloudbees.version }}
+      image: docker.io/mock/database:${{ cloudbees.version }}
+    steps:
+      - name: Check out
+        id: checkout
+        uses: cloudbees-io/checkout@v2
+
+      - name: Mock Build Database Component
+        uses: docker://alpine:latest
+        shell: sh
+        run: |
+          echo "=================================="
+          echo "Building Database Component"
+          echo "=================================="
+          echo ""
+          echo "Step 1: Checking out code..."
+          echo "Step 2: Installing dependencies..."
+          echo "Step 3: Running database migrations..."
+          echo "Step 4: Building database container..."
+          echo ""
+          echo "✓ Build completed successfully!"
+          echo ""
+          echo "Artifact URL: docker.io/mock/database:${{ cloudbees.version }}"
+          echo "Artifact ID: db-artifact-${{ cloudbees.version }}"
+          echo "Version: ${{ cloudbees.version }}"
+          echo "=================================="
+
+      - name: Publish build evidence
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |
+            ## Database Component Build
+
+            **Component**: Database
+            **Image**: `docker.io/mock/database:${{ cloudbees.version }}`
+            **Version**: `${{ cloudbees.version }}`
+            **Artifact ID**: `db-artifact-${{ cloudbees.version }}`
+            **Status**: Build successful
+            **Commit SHA**: `${{ cloudbees.scm.sha }}`
